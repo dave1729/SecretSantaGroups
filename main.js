@@ -8,12 +8,14 @@ canvas.height = window.innerHeight - 150;
 var ctx = canvas.getContext('2d');
 
 entityList = [];
-entityList.push(new Background(canvas.width, canvas.height));
+var background = new Background(canvas.width, canvas.height);
 var createButton = new Button(.9*canvas.width, .9*canvas.height, .05*canvas.height);
 entityList.push(createButton);
 var im = new InputManager("Creating Participants", ctx);
 im.addMouse();
 im.start();
+
+var active = undefined;
     
 function Background(canvasWidth, canvasHeight) {
 	this.color1 = "rgb(200,0,0)";
@@ -65,11 +67,16 @@ function Participant(theX, theY) {
 }
 
 Participant.prototype.update = function() {
-	//background needs no updating
+	if(active === this) {
+		var mouseLoc = im.mouseLocation();
+		this.x = mouseLoc.x;
+		this.y = mouseLoc.y;
+	}
 }
 
 Participant.prototype.draw = function(ctx) {
 	//draw background circle
+	ctx.beginPath();
 	ctx.fillStyle = this.color; // sets the color
 	ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
 	ctx.fill();
@@ -81,13 +88,17 @@ var isTouching = function(point, circle) {
 }
 
 var drawAll = function() {
-	var mouse = im.getClick();
-	console.log((mouse === undefined) + " ");
-	if(!(mouse === undefined)) {
-		if(isTouching(mouse, createButton)) {
-			entityList.push(new Participant(mouse.x, mouse.y));
+	if(im.mouseDown()) {
+		if(isTouching(im.mouseLocation(), createButton)) {
+			active = new Participant(im.mouseLocation().x, im.mouseLocation().y);
+			entityList.push(active);
 		}
 	}
+	else if(im.mouseUp()){
+		active = undefined;
+	}
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	background.draw(ctx);
 	for(var i = 0; i < entityList.length; i++) {
 		var entity = entityList[i];
 		entity.update();

@@ -46,8 +46,9 @@ InputManager.prototype.setFalse = function(theName) {
 InputManager.prototype.setAllFalse = function() {
 	for(var i = 0; i < this.currentgroup.input_list.length; i++) {
 		this.currentgroup.input_list[i].isPressed = false;
-		this.currentgroup.click = null;
-		this.currentgroup.rClick = null;
+		this.currentgroup.mouseUp = false;
+		this.currentgroup.mouseDown = false;
+		this.currentgroup.mouseLocation = undefined;
 	}
 }
 
@@ -72,27 +73,40 @@ InputManager.prototype.checkMouse = function() {
 
 //returns the left click
 //getClick()
-InputManager.prototype.getClick = function() {
+InputManager.prototype.mouseDown = function() {
 	if(this.currentgroup.isUsingMouse) {
-		return this.currentgroup.click;
+		var bool = this.currentgroup.mouseDown;
+		this.currentgroup.mouseDown = false;
+		return bool;
+	}
+	return null;
+}
+
+//returns the left click
+//getClick()
+InputManager.prototype.mouseUp = function() {
+	if(this.currentgroup.isUsingMouse) {
+		var bool = this.currentgroup.mouseUp;
+		this.currentgroup.mouseUp = false;
+		return bool;
 	}
 	return null;
 }
 
 //returns the right click
 //getRClick()
-InputManager.prototype.getRClick = function() {
-	if(this.currentgroup.isUsingMouse) {
-		return this.currentgroup.rClick;
-	}
-	return null;
-}
+//InputManager.prototype.getRClick = function() {
+//	if(this.currentgroup.isUsingMouse) {
+//		return this.currentgroup.rClick;
+//	}
+//	return null;
+//}
 
 //returns the moving mouse position
 //getMouse()
-InputManager.prototype.getMouse = function() {
+InputManager.prototype.mouseLocation = function() {
 	if(this.currentgroup.isUsingMouse) {
-		return this.currentgroup.mouse;
+		return this.currentgroup.mouseLocation;
 	}
 	return null;
 }
@@ -140,37 +154,37 @@ InputManager.prototype.start = function () {
 
     this.currentgroup.ctx.canvas.addEventListener("mousedown", function (e) {
         if(that.currentgroup.isUsingMouse) {
-			that.currentgroup.click = getXandY(e);
+			that.currentgroup.mouseLocation = getXandY(e);
+			that.currentgroup.mouseDown = true; 
 		}
     }, false);
     
     this.currentgroup.ctx.canvas.addEventListener("mouseup", function (e) {
         if(that.currentgroup.isUsingMouse) {
-			that.currentgroup.click = undefined;
+			that.currentgroup.mouseLocation = getXandY(e);
+			that.currentgroup.mouseUp = true; 
 		}
     }, false);
 	
-    this.currentgroup.ctx.canvas.addEventListener("contextmenu", function (e) {
-        if(that.currentgroup.isUsingMouse) {
-			that.currentgroup.rClick = getXandY(e);
-		}
-        // console.log(e);
-        // console.log("Right Click Event - X,Y " + e.clientX + ", " + e.clientY);
-        e.preventDefault();
-    }, false);
+//    this.currentgroup.ctx.canvas.addEventListener("contextmenu", function (e) {
+//        if(that.currentgroup.isUsingMouse) {
+//			that.currentgroup.mouseLocation = getXandY(e);
+//		}
+//        e.preventDefault();
+//    }, false);
 	
     this.currentgroup.ctx.canvas.addEventListener("mousemove", function (e) {
         //console.log(e);
         if(that.currentgroup.isUsingMouse) {
-			that.currentgroup.mouse = getXandY(e);
+			that.currentgroup.mouseLocation = getXandY(e);
 		}
     }, false);
 
-    this.currentgroup.ctx.canvas.addEventListener("mousewheel", function (e) {
-        //console.log(e);
-        that.wheel = e;
-        //console.log("Click Event - X,Y " + e.clientX + ", " + e.clientY + " Delta " + e.deltaY);
-    }, false);
+//    this.currentgroup.ctx.canvas.addEventListener("mousewheel", function (e) {
+//        //console.log(e);
+//        that.wheel = e;
+//        //console.log("Click Event - X,Y " + e.clientX + ", " + e.clientY + " Delta " + e.deltaY);
+//    }, false);
     
     this.currentgroup.ctx.canvas.addEventListener("keydown", function (e) {
 		for(var i = 0; i < that.currentgroup.input_list.length; i++) {
@@ -205,9 +219,9 @@ function InputGroup(theName, ctx) {
 	this.ctx = ctx;
     this.input_list = [];
     this.isUsingMouse = false;
-    this.click = undefined;
-    this.rclick = undefined;
-    this.mouse = undefined;
+    this.mouseDown = false;
+    this.mouseUp = false;
+    this.mouseLocation = undefined;
 }
 
 //adds a new input to the input group
