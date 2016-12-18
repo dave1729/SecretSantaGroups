@@ -1,5 +1,3 @@
-var gm = gm || {};
-
 //Input Manager takes the context to draw on
 //and the name of your first InputGroup
 //InputManager(context, String)
