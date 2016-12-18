@@ -1,4 +1,5 @@
 function SecretSantaInterface() {
+	this.count = 0;
 	//alert("function SecretSantaInterface()");
 	this.canvas = document.getElementById("InteractiveCanvas");
 	//set canvas dimensions
@@ -26,22 +27,28 @@ SecretSantaInterface.prototype.isTouching = function(point, circle) {
 }
 
 SecretSantaInterface.prototype.drawAll = function() {
-	if(this.im.mouseDown()) {
-		if(isTouching(this.im.mouseLocation(), this.createButton)) {
-			this.activeParticipant = new Participant(this.im.mouseLocation().x, this.im.mouseLocation().y, this.ctx);
-			this.entityList.push(this.activeParticipant);
+	var self = this;
+	this.count++;
+	console.log("Count: " + this.count);
+	if(self.im.mouseDown()) {
+		if(self.isTouching(self.im.mouseLocation(), self.createButton)) {
+			self.activeParticipant = new Participant(self.im.mouseLocation().x, self.im.mouseLocation().y, self.ctx);
+			self.entityList.push(self.activeParticipant);
 		}
 	}
-	else if(this.im.mouseUp()){
-		this.activeParticipant = undefined;
+	else if(self.im.mouseUp()){
+		self.activeParticipant = undefined;
 	}
 	//this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-	for(var i = 0; i < this.entityList.length; i++) {
-		var entity = this.entityList[i];
+	for(var i = 0; i < self.entityList.length; i++) {
+		var entity = self.entityList[i];
+		if(self.activeParticipant === entity) {
+			entity.beActive(self.im);
+		}
 		entity.update();
 		entity.draw();
 	}
-	window.requestAnimationFrame(this.drawAll);
+	window.requestAnimationFrame(this.drawAll.bind(this));
 }
     
 function Background(canvasWidth, canvasHeight, ctx) {
@@ -107,13 +114,14 @@ function Participant(theX, theY, ctx1) {
 	//this.secretSanta = yourSecretSanta;
 }
 
+Participant.prototype.beActive = function(im) {
+	var mouseLoc = im.mouseLocation();
+	this.x = mouseLoc.x;
+	this.y = mouseLoc.y;
+}
+
 Participant.prototype.update = function() {
-	//alert("Participant.prototype.update");
-	if(active === this) {
-		var mouseLoc = im.mouseLocation();
-		this.x = mouseLoc.x;
-		this.y = mouseLoc.y;
-	}
+
 }
 
 Participant.prototype.draw = function() {
