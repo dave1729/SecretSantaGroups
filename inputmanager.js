@@ -1,5 +1,3 @@
-var gm = gm || {};
-
 //Input Manager takes the context to draw on
 //and the name of your first InputGroup
 //InputManager(context, String)
@@ -145,8 +143,8 @@ InputManager.prototype.start = function () {
 	var that = this;
 	
     var getXandY = function (e) {
-        var x = e.clientX - this.ctx.canvas.getBoundingClientRect().left;
-        var y = e.clientY - this.ctx.canvas.getBoundingClientRect().top;
+        var x = e.clientX - that.ctx.canvas.getBoundingClientRect().left;
+        var y = e.clientY - that.ctx.canvas.getBoundingClientRect().top;
         return { x: x, y: y };
     }
 
