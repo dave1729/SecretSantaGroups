@@ -1,5 +1,3 @@
-var gm = gm || {};
-
 //Input Manager takes the context to draw on
 //and the name of your first InputGroup
 //InputManager(context, String)
@@ -75,9 +73,9 @@ InputManager.prototype.checkMouse = function() {
 //getClick()
 InputManager.prototype.mouseDown = function() {
 	if(this.currentgroup.isUsingMouse) {
-		var bool = this.currentgroup.mouseDown;
-		this.currentgroup.mouseDown = false;
-		return bool;
+		//var bool = this.currentgroup.mouseDown;
+		//this.currentgroup.mouseDown = false;
+		return this.currentgroup.mouseDown;
 	}
 	return null;
 }
@@ -86,9 +84,9 @@ InputManager.prototype.mouseDown = function() {
 //getClick()
 InputManager.prototype.mouseUp = function() {
 	if(this.currentgroup.isUsingMouse) {
-		var bool = this.currentgroup.mouseUp;
-		this.currentgroup.mouseUp = false;
-		return bool;
+		//var bool = this.currentgroup.mouseUp;
+		//this.currentgroup.mouseUp = false;
+		return this.currentgroup.mouseUp;
 	}
 	return null;
 }
@@ -145,8 +143,8 @@ InputManager.prototype.start = function () {
 	var that = this;
 	
     var getXandY = function (e) {
-        var x = e.clientX - this.ctx.canvas.getBoundingClientRect().left;
-        var y = e.clientY - this.ctx.canvas.getBoundingClientRect().top;
+        var x = e.clientX - that.ctx.canvas.getBoundingClientRect().left;
+        var y = e.clientY - that.ctx.canvas.getBoundingClientRect().top;
         return { x: x, y: y };
     }
 
@@ -156,13 +154,15 @@ InputManager.prototype.start = function () {
         if(that.currentgroup.isUsingMouse) {
 			that.currentgroup.mouseLocation = getXandY(e);
 			that.currentgroup.mouseDown = true; 
+			that.currentgroup.mouseUp = false;
 		}
     }, false);
     
     this.currentgroup.ctx.canvas.addEventListener("mouseup", function (e) {
         if(that.currentgroup.isUsingMouse) {
 			that.currentgroup.mouseLocation = getXandY(e);
-			that.currentgroup.mouseUp = true; 
+			that.currentgroup.mouseUp = true;
+			that.currentgroup.mouseDown = false;
 		}
     }, false);
 	
