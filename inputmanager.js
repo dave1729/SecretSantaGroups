@@ -73,9 +73,9 @@ InputManager.prototype.checkMouse = function() {
 //getClick()
 InputManager.prototype.mouseDown = function() {
 	if(this.currentgroup.isUsingMouse) {
-		var bool = this.currentgroup.mouseDown;
-		this.currentgroup.mouseDown = false;
-		return bool;
+		//var bool = this.currentgroup.mouseDown;
+		//this.currentgroup.mouseDown = false;
+		return this.currentgroup.mouseDown;
 	}
 	return null;
 }
@@ -84,9 +84,9 @@ InputManager.prototype.mouseDown = function() {
 //getClick()
 InputManager.prototype.mouseUp = function() {
 	if(this.currentgroup.isUsingMouse) {
-		var bool = this.currentgroup.mouseUp;
-		this.currentgroup.mouseUp = false;
-		return bool;
+		//var bool = this.currentgroup.mouseUp;
+		//this.currentgroup.mouseUp = false;
+		return this.currentgroup.mouseUp;
 	}
 	return null;
 }
@@ -154,13 +154,15 @@ InputManager.prototype.start = function () {
         if(that.currentgroup.isUsingMouse) {
 			that.currentgroup.mouseLocation = getXandY(e);
 			that.currentgroup.mouseDown = true; 
+			that.currentgroup.mouseUp = false;
 		}
     }, false);
     
     this.currentgroup.ctx.canvas.addEventListener("mouseup", function (e) {
         if(that.currentgroup.isUsingMouse) {
 			that.currentgroup.mouseLocation = getXandY(e);
-			that.currentgroup.mouseUp = true; 
+			that.currentgroup.mouseUp = true;
+			that.currentgroup.mouseDown = false;
 		}
     }, false);
 	
