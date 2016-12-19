@@ -16,9 +16,9 @@ function SecretSantaInterface() {
 	//create context
 	this.ctx = this.canvas.getContext('2d');
 	this.entityList = [];
-	this.background = new Background(this.canvas.width, this.canvas.height, this.color1, this.color2, this.ctx);
-	this.createButton = new Button(.9*this.canvas.width, .9*this.canvas.height, .05*this.canvas.height, this.color1, this.color5, this.ctx);
-	//this.entityList.push(this.background);
+	this.boarderSize = 10;
+	this.background = new Background(this.boarderSize, this.canvas.width, this.canvas.height, this.color1, this.color2, this.ctx);
+	this.createButton = new Button(this.canvas.width - 60, this.canvas.height - 55, 30, this.color1, this.color5, this.ctx);
 	this.entityList.push(this.createButton);
 	this.im = new InputManager("Creating Participants", this.ctx);
 	this.im.addMouse();
@@ -60,14 +60,14 @@ SecretSantaInterface.prototype.drawAll = function() {
 	window.requestAnimationFrame(this.drawAll.bind(this));
 }
     
-function Background(canvasWidth, canvasHeight, color1, color2, ctx) {
+function Background(boarderSize, canvasWidth, canvasHeight, color1, color2, ctx) {
 	//alert("function Background(canvasWidth, canvasHeight, ctx)");
 	this.ctx = ctx;
 	this.color1 = color1;
 	this.color2 = color2;
 	this.width = canvasWidth;
 	this.height = canvasHeight;
-	this.boarderSize = 6;
+	this.boarderSize = boarderSize;
 }
 
 Background.prototype.beActive = function(self) {
@@ -89,19 +89,19 @@ Background.prototype.draw = function() {
 	this.ctx.closePath();
 }
 
-function Button(theX, theY, r, color1, color2, ctx) {
+function Button(theX, theY, radius, color1, color2, ctx) {
 	//alert("function Button(theX, theY, r, ctx)");
 	this.ctx = ctx;
+	this.radius = radius;
 	this.x = theX;
 	this.y = theY;
-	this.radius = r;
 	this.color1 = color1;
 	this.color2 = color2;
 }
 
-Button.prototype.beActive = function(self) {
-	self.mouseOverObject = new Participant(self.im.mouseLocation().x, self.im.mouseLocation().y, self.color3, self.ctx);
-	self.entityList.push(self.mouseOverObject);
+Button.prototype.beActive = function(ssInterface) {
+	ssInterface.mouseOverObject = new Participant(ssInterface.im.mouseLocation().x, ssInterface.im.mouseLocation().y, ssInterface.color3, ssInterface.ctx);
+	ssInterface.entityList.push(ssInterface.mouseOverObject);
 }
 
 Button.prototype.update = function() {
