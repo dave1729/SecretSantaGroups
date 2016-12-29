@@ -13,13 +13,31 @@ function SecretSantaInterface() {
 	this.canvas.width = window.innerWidth - 50;
 	this.canvas.height = window.innerHeight - 150;
 	
-	//create context
+	//create context and empty entity list (everything is an entity except the background)
 	this.ctx = this.canvas.getContext('2d');
 	this.entityList = [];
 	this.boarderSize = 10;
+	
+	//Create Background
 	this.background = new Background(this.boarderSize, this.canvas.width, this.canvas.height, this.color1, this.color2, this.ctx);
-	this.createButton = new Button(this.canvas.width - 60, this.canvas.height - 55, 30, this.color1, this.color5, this.ctx);
+	
+	//Create the Button that creates new participants (in bottom right of screen)
+	this.createButton = new Button("Create Participants Button", this.canvas.width - 60, this.canvas.height - 55, 30,
+									this.color1, this.color5, this.ctx);
+	this.createButton.beActive = function (ssInterface) {
+		ssInterface.mouseOverObject = new Participant(ssInterface.im.mouseLocation().x, ssInterface.im.mouseLocation().y, ssInterface.ctx);
+		ssInterface.entityList.push(ssInterface.mouseOverObject);
+    };
 	this.entityList.push(this.createButton);
+	
+	//Create the Button that puts participants in groups (in top right of screen)
+	this.groupsButton = new Button("Create Groups Button", this.canvas.width - 60, 55, 30,
+									this.color3, this.color5, this.ctx);
+	this.groupsButton.beActive = function (ssInterface) {
+		ssInterface.mouseOverObject = new Group(ssInterface.im.mouseLocation().x, ssInterface.im.mouseLocation().y, ssInterface.ctx);
+		ssInterface.entityList.push(ssInterface.mouseOverObject);
+    };
+	this.entityList.push(this.groupsButton);
 	this.im = new InputManager("Creating Participants", this.ctx);
 	this.im.addMouse();
 	this.im.start();
@@ -40,14 +58,16 @@ SecretSantaInterface.prototype.drawAll = function() {
 	//draw background before anything
 	self.background.draw();
 	
-	//pick mouoseOverEntity
+	//pick mouoseOverEntity, from top down
 	for(var i = self.entityList.length-1; i >= 0; i--) {
 		var thisEntity = self.entityList[i];
+		//to become new mouseEntity mouse must be down, over the entity, and a previous entity must not have been chosen
 		if(self.im.mouseDown() && self.isTouching(self.im.mouseLocation(), thisEntity) && self.mouseOverObject === undefined) {
 			self.entityList.splice(i, 1);
 			self.entityList.push(thisEntity);
 			self.mouseOverObject = thisEntity;
 			foundOne++;
+			break;
 		}
 	}
 	
@@ -62,7 +82,7 @@ SecretSantaInterface.prototype.drawAll = function() {
 		self.mouseOverObject = undefined;
 	}
 	
-	//draw all entities
+	//draw all entities, from bottom up, and let them self update if they need to
 	for(var i = 0; i < self.entityList.length; i++) {
 		var thisEntity = self.entityList[i];
 		thisEntity.update();
@@ -103,9 +123,9 @@ Background.prototype.draw = function() {
 	this.ctx.closePath();
 }
 
-function Button(theX, theY, radius, color1, color2, ctx) {
+function Button(theName, theX, theY, radius, color1, color2, ctx) {
 	//alert("function Button(theX, theY, r, ctx)");
-	this.name = "Create Button";
+	this.name = theName;
 	this.ctx = ctx;
 	this.radius = radius;
 	this.x = theX;
@@ -114,10 +134,9 @@ function Button(theX, theY, radius, color1, color2, ctx) {
 	this.color2 = color2;
 }
 
-Button.prototype.beActive = function(ssInterface) {
-	ssInterface.mouseOverObject = new Participant(ssInterface.im.mouseLocation().x, ssInterface.im.mouseLocation().y, ssInterface.color3, ssInterface.ctx);
-	ssInterface.entityList.push(ssInterface.mouseOverObject);
-}
+//Button.prototype.beActive = function(ssInterface) {
+	//BUTTONS BEACTIVE FUNCTION IS DEFINED ON CREATION, TO BE DIFFERENT EVERY TIME
+//}
 
 Button.prototype.update = function() {
 	
@@ -130,21 +149,17 @@ Button.prototype.draw = function() {
 	this.ctx.fillStyle = this.color1;
 	this.ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
 	this.ctx.fill();
-	this.ctx.closePath();
-	this.ctx.beginPath();
-	this.ctx.strokeStyle = this.color2;
 	this.ctx.lineWidth = 2;
+	this.ctx.strokeStyle = this.color2;
 	this.ctx.moveTo(this.x - this.radius/3, this.y);
 	this.ctx.lineTo(this.x + this.radius/3, this.y);
-	this.ctx.stroke();
-	this.ctx.closePath();
-	this.ctx.beginPath();
 	this.ctx.moveTo(this.x, this.y - this.radius/3);
 	this.ctx.lineTo(this.x, this.y + this.radius/3);
 	this.ctx.stroke();
+	this.ctx.closePath();
 }
 
-function Participant(theX, theY, color, ctx1) {
+function Participant(theX, theY, ctx1) {
 	//alert("function Participant(theX, theY, ctx1)");
 	this.name = "Participant Num " + Math.floor(Math.random() * 1000);
 	this.ctx = ctx1;
@@ -153,7 +168,7 @@ function Participant(theX, theY, color, ctx1) {
 	this.radius = 30;
 	var num = Math.round(Math.random()*255);
 	var num2 = Math.round(Math.random()*255);
-	this.color = "rgb(" + num + ",255," + num2 + ")";
+	this.color = "rgb(" + num + ",180," + num2 + ")";
 	//this.name = yourName;
 	//this.groupNumber = yourGroupNumber;
 	//this.secretCode = yourSecretCode;
@@ -175,8 +190,49 @@ Participant.prototype.draw = function() {
 	//draw background circle
 	this.ctx.beginPath();
 	this.ctx.fillStyle = this.color; // sets the color
+	this.ctx.strokeStyle = "rgb(35,35,35)";
+	this.ctx.lineWidth = 2;
 	this.ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
 	this.ctx.fill();
+	this.ctx.stroke();
+	this.ctx.closePath();
+}
+
+/////////////////////////////////////
+function Group(theX, theY, ctx1) {
+	//alert("function Participant(theX, theY, ctx1)");
+	this.name = "Group Num " + Math.floor(Math.random() * 100);
+	this.ctx = ctx1;
+	this.x = theX;
+	this.y = theY;
+	this.radius = 100;
+	var num = Math.round(Math.random()*255);
+	var num2 = Math.round(Math.random()*255);
+	this.color = "rgb(" + num + ",200," + num2 + ")";
+	//this.name = yourName;
+	//this.groupNumber = yourGroupNumber;
+	//this.secretCode = yourSecretCode;
+	//this.secretSanta = yourSecretSanta;
+}
+
+Group.prototype.beActive = function(self) {
+	var mouseLoc = self.im.mouseLocation();
+	this.x = mouseLoc.x;
+	this.y = mouseLoc.y;
+}
+
+Group.prototype.update = function() {
+
+}
+
+Group.prototype.draw = function() {
+	//alert("Participant.prototype.draw");
+	//draw background circle
+	this.ctx.beginPath();
+	this.ctx.strokeStyle = this.color;
+	this.ctx.lineWidth = 10;
+	this.ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
+	this.ctx.stroke();
 	this.ctx.closePath();
 }
 
