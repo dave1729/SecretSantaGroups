@@ -13,69 +13,99 @@ function SecretSantaInterface() {
 	this.canvas.width = window.innerWidth - 50;
 	this.canvas.height = window.innerHeight - 150;
 	
-	//create context
+	//create context and empty entity list (everything is an entity except the background)
 	this.ctx = this.canvas.getContext('2d');
 	this.entityList = [];
+	this.participantList = [];
+	this.groupList = [];
 	this.boarderSize = 10;
+	this.mouseOverObject = undefined;
+	
+	//Create Background
 	this.background = new Background(this.boarderSize, this.canvas.width, this.canvas.height, this.color1, this.color2, this.ctx);
-	this.createButton = new Button(this.canvas.width - 60, this.canvas.height - 55, 30, this.color1, this.color5, this.ctx);
+	
+	//Create the Button that creates new participants (in bottom right of screen)
+	this.createButton = new Button("Create Participants Button", this.canvas.width - 60, this.canvas.height - 55, 30,
+									this.color1, this.color5, this.ctx);
+	this.createButton.beActive = function (ssInterface) {
+		ssInterface.mouseOverObject = new Participant(ssInterface.im.mouseLocation().x, ssInterface.im.mouseLocation().y, ssInterface.ctx);
+		ssInterface.entityList.push(ssInterface.mouseOverObject);
+		ssInterface.participantList.push(ssInterface.mouseOverObject);
+    };
 	this.entityList.push(this.createButton);
+	
+	//Create the Button that puts participants in groups (in top right of screen)
+	this.groupsButton = new Button("Create Groups Button", this.canvas.width - 60, 55, 30,
+									this.color3, this.color5, this.ctx);
+	this.groupsButton.beActive = function (ssInterface) {
+		ssInterface.mouseOverObject = new Group(ssInterface.im.mouseLocation().x, ssInterface.im.mouseLocation().y, ssInterface.ctx);
+		ssInterface.entityList.push(ssInterface.mouseOverObject);
+		ssInterface.groupList.push(ssInterface.mouseOverObject);
+    };
+	this.entityList.push(this.groupsButton);
+	
+	//Create and Start the Input Manager
 	this.im = new InputManager("Creating Participants", this.ctx);
 	this.im.addMouse();
 	this.im.start();
-	this.mouseOverObject = undefined;
+	
+	//Start
 	this.drawAll();
-}
-
-SecretSantaInterface.prototype.isTouching = function(point, circle) {
-	var distToCenter = Math.sqrt(Math.pow(point.x - circle.x, 2) + Math.pow(point.y - circle.y, 2));
-	console.log("(DistToCenter,Radius) " + distToCenter + ", " + circle.radius);
-	return (circle.radius >= distToCenter);
 }
 
 SecretSantaInterface.prototype.drawAll = function() {
 	var self = this;
-	var activeIndex = -1;
-	var foundOne = false;
-	//this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+	var foundOne = 0;
+	this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+	
+	//draw background before anything
 	self.background.draw();
+	
+	//pick mouoseOverEntity, from top down
+	for(var i = self.entityList.length-1; i >= 0; i--) {
+		var thisEntity = self.entityList[i];
+		//to become new mouseEntity mouse must be down, over the entity, and a previous entity must not have been chosen
+		if(self.im.mouseDown() && thisEntity.isTouchingMouse(self.im.mouseLocation()) && self.mouseOverObject === undefined) {
+			self.entityList.splice(i, 1);
+			self.entityList.push(thisEntity);
+			self.mouseOverObject = thisEntity;
+			foundOne++;
+			break;
+		}
+	}
+	
+	//have it do whatever its mouseOverEntity things are
+	console.log("Found One: " + foundOne);
+	if(!(self.mouseOverObject === undefined) || foundOne > 0) {
+		self.mouseOverObject.beActive(self);
+	}
+	
+	//if mouse is up, there is no entity
+	if(self.im.mouseUp() && self.mouseOverObject !== undefined){
+		self.mouseOverObject.stopBeingActive(self);
+		self.mouseOverObject = undefined;
+	}
+	
+	//draw all entities, from bottom up, and let them self update if they need to
 	for(var i = 0; i < self.entityList.length; i++) {
-		activeIndex++;
 		var thisEntity = self.entityList[i];
 		thisEntity.update();
 		thisEntity.draw();
-		if(self.im.mouseDown() && self.mouseOverObject === undefined) {
-			if(self.isTouching(self.im.mouseLocation(), thisEntity)) {
-				self.mouseOverObject = thisEntity;
-				foundOne = true;
-			}
-		}
 	}
-	if(!(self.mouseOverObject === undefined) || foundOne) {
-		self.mouseOverObject.beActive(self);
-	}
-	if(self.im.mouseUp()){
-		self.mouseOverObject = undefined;
-	}
+	
+	//request next frame, with callback to this function
 	window.requestAnimationFrame(this.drawAll.bind(this));
 }
     
 function Background(boarderSize, canvasWidth, canvasHeight, color1, color2, ctx) {
 	//alert("function Background(canvasWidth, canvasHeight, ctx)");
+	this.name = "Background";
 	this.ctx = ctx;
 	this.color1 = color1;
 	this.color2 = color2;
 	this.width = canvasWidth;
 	this.height = canvasHeight;
 	this.boarderSize = boarderSize;
-}
-
-Background.prototype.beActive = function(self) {
-	//doesn't do anything when active
-}
-
-Background.prototype.update = function() {
-	//background needs no updating
 }
 
 Background.prototype.draw = function() {
@@ -89,8 +119,9 @@ Background.prototype.draw = function() {
 	this.ctx.closePath();
 }
 
-function Button(theX, theY, radius, color1, color2, ctx) {
+function Button(theName, theX, theY, radius, color1, color2, ctx) {
 	//alert("function Button(theX, theY, r, ctx)");
+	this.name = theName;
 	this.ctx = ctx;
 	this.radius = radius;
 	this.x = theX;
@@ -99,9 +130,17 @@ function Button(theX, theY, radius, color1, color2, ctx) {
 	this.color2 = color2;
 }
 
-Button.prototype.beActive = function(ssInterface) {
-	ssInterface.mouseOverObject = new Participant(ssInterface.im.mouseLocation().x, ssInterface.im.mouseLocation().y, ssInterface.color3, ssInterface.ctx);
-	ssInterface.entityList.push(ssInterface.mouseOverObject);
+Button.prototype.stopBeingActive = function(ssInterface) {
+	//Unused
+}
+
+//Button.prototype.beActive = function(ssInterface) {
+	//BUTTONS BEACTIVE FUNCTION IS DEFINED ON CREATION, TO BE DIFFERENT EVERY TIME
+//}
+
+Button.prototype.isTouchingMouse = function(point) {
+	var distToCenter = Math.sqrt(Math.pow(point.x - this.x, 2) + Math.pow(point.y - this.y, 2));
+	return (this.radius >= distToCenter);
 }
 
 Button.prototype.update = function() {
@@ -115,29 +154,26 @@ Button.prototype.draw = function() {
 	this.ctx.fillStyle = this.color1;
 	this.ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
 	this.ctx.fill();
-	this.ctx.closePath();
-	this.ctx.beginPath();
-	this.ctx.strokeStyle = this.color2;
 	this.ctx.lineWidth = 2;
-	this.ctx.moveTo(this.x - this.radius/2, this.y);
-	this.ctx.lineTo(this.x + this.radius/2, this.y);
+	this.ctx.strokeStyle = this.color2;
+	this.ctx.moveTo(this.x - this.radius/3, this.y);
+	this.ctx.lineTo(this.x + this.radius/3, this.y);
+	this.ctx.moveTo(this.x, this.y - this.radius/3);
+	this.ctx.lineTo(this.x, this.y + this.radius/3);
 	this.ctx.stroke();
 	this.ctx.closePath();
-	this.ctx.beginPath();
-	this.ctx.moveTo(this.x, this.y - this.radius/2);
-	this.ctx.lineTo(this.x, this.y + this.radius/2);
-	this.ctx.stroke();
 }
 
-function Participant(theX, theY, color, ctx1) {
+function Participant(theX, theY, ctx1) {
 	//alert("function Participant(theX, theY, ctx1)");
+	this.name = "Participant Num " + Math.floor(Math.random() * 1000);
 	this.ctx = ctx1;
 	this.x = theX;
 	this.y = theY;
 	this.radius = 30;
 	var num = Math.round(Math.random()*255);
 	var num2 = Math.round(Math.random()*255);
-	this.color = "rgb(" + num + ",255," + num2 + ")";
+	this.color = "rgb(" + num + ",180," + num2 + ")";
 	//this.name = yourName;
 	//this.groupNumber = yourGroupNumber;
 	//this.secretCode = yourSecretCode;
@@ -150,6 +186,22 @@ Participant.prototype.beActive = function(self) {
 	this.y = mouseLoc.y;
 }
 
+Participant.prototype.stopBeingActive = function(ssInterface) {
+	var thisEntity = this;
+	for(var i = 0; i < ssInterface.groupList.length; i++) {
+		var thisGroup = ssInterface.groupList[i];
+		var distToCenter = Math.sqrt(Math.pow(thisGroup.x - this.x, 2) + Math.pow(thisGroup.y - this.y, 2));
+		if(thisGroup.outerRadius >= distToCenter) {
+			this.color = thisGroup.color;
+		}
+	}
+}
+
+Participant.prototype.isTouchingMouse = function(point) {
+	var distToCenter = Math.sqrt(Math.pow(point.x - this.x, 2) + Math.pow(point.y - this.y, 2));
+	return (this.radius >= distToCenter);
+}
+
 Participant.prototype.update = function() {
 
 }
@@ -159,8 +211,92 @@ Participant.prototype.draw = function() {
 	//draw background circle
 	this.ctx.beginPath();
 	this.ctx.fillStyle = this.color; // sets the color
+	this.ctx.strokeStyle = "rgb(35,35,35)";
+	this.ctx.lineWidth = 2;
 	this.ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
 	this.ctx.fill();
+	this.ctx.stroke();
+	this.ctx.closePath();
+}
+
+/////////////////////////////////////
+function Group(theX, theY, ctx1) {
+	//alert("function Participant(theX, theY, ctx1)");
+	this.name = "Group Num " + Math.floor(Math.random() * 100);
+	this.ctx = ctx1;
+	this.x = theX;
+	this.y = theY;
+	this.activePart = "none";//determines weather the inner radius is affected, or outer radius
+	this.outerRadius = 100;
+	this.innerRadius = 15;
+	var num = Math.round(Math.random()*200) + 25;
+	this.color = "rgb(" + num + ",0,0)";
+	this.lineWidth = 10;
+	//this.name = yourName;
+	//this.groupNumber = yourGroupNumber;
+	//this.secretCode = yourSecretCode;
+	//this.secretSanta = yourSecretSanta;
+}
+
+Group.prototype.beActive = function(self) {
+	var mouseLoc = self.im.mouseLocation();
+	if(this.activePart === "innerRadius") {
+		this.x = mouseLoc.x;
+		this.y = mouseLoc.y;
+	}
+	else if(this.activePart === "outerRadius"){
+		var distToCenter = Math.sqrt(Math.pow(mouseLoc.x - this.x, 2) + Math.pow(mouseLoc.y - this.y, 2));
+		this.outerRadius = distToCenter;
+	}
+}
+
+Group.prototype.stopBeingActive = function(ssInterface) {
+	var thisGroup = this;
+	this.activePart = "none";
+	for(var i = 0; i < ssInterface.participantList.length; i++) {
+		var thisEntity = ssInterface.participantList[i];
+		var distToCenter = Math.sqrt(Math.pow(thisEntity.x - this.x, 2) + Math.pow(thisEntity.y - this.y, 2));
+		if(this.outerRadius >= distToCenter) {
+			thisEntity.color = thisGroup.color;
+		}
+	}
+}
+
+Group.prototype.isTouchingMouse = function(point) {
+	var isTouching = false;
+	var distToCenter = Math.sqrt(Math.pow(point.x - this.x, 2) + Math.pow(point.y - this.y, 2));
+	var delta = Math.abs(this.outerRadius - distToCenter);
+	//if we're already selecting the inner, Stay on inner. Otherwise we can check to see if we are close enough
+	if(this.activePart === "innerRadius" || (this.activePart === "none" && this.innerRadius >= distToCenter)) {
+		this.activePart = "innerRadius";
+		isTouching = true;
+	}
+	//if we're already selecting the outer, Stay on outer. Otherwise we can check to see if we are touching enough
+	else if(this.activePart === "outerRadius" || (this.activePart === "none" && delta <= this.lineWidth/2)) {
+		this.activePart = "outerRadius";
+		isTouching = true;
+	}
+	
+	return isTouching;
+}
+
+Group.prototype.update = function() {
+
+}
+
+Group.prototype.draw = function() {
+	//alert("Participant.prototype.draw");
+	//draw background circle
+	this.ctx.beginPath();
+	this.ctx.fillStyle = this.color;
+	this.ctx.arc(this.x, this.y, this.innerRadius, 0, 2 * Math.PI, false);
+	this.ctx.fill();
+	this.ctx.closePath();
+	this.ctx.beginPath();
+	this.ctx.strokeStyle = this.color;
+	this.ctx.lineWidth = this.lineWidth;
+	this.ctx.arc(this.x, this.y, this.outerRadius, 0, 2 * Math.PI, false);
+	this.ctx.stroke();
 	this.ctx.closePath();
 }
 
