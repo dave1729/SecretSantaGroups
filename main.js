@@ -29,39 +29,53 @@ function SecretSantaInterface() {
 
 SecretSantaInterface.prototype.isTouching = function(point, circle) {
 	var distToCenter = Math.sqrt(Math.pow(point.x - circle.x, 2) + Math.pow(point.y - circle.y, 2));
-	console.log("(DistToCenter,Radius) " + distToCenter + ", " + circle.radius);
 	return (circle.radius >= distToCenter);
 }
 
 SecretSantaInterface.prototype.drawAll = function() {
 	var self = this;
-	var activeIndex = -1;
-	var foundOne = false;
-	//this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+	var foundOne = 0;
+	this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+	
+	//draw background before anything
 	self.background.draw();
-	for(var i = 0; i < self.entityList.length; i++) {
-		activeIndex++;
+	
+	//pick mouoseOverEntity
+	for(var i = self.entityList.length-1; i >= 0; i--) {
 		var thisEntity = self.entityList[i];
-		thisEntity.update();
-		thisEntity.draw();
-		if(self.im.mouseDown() && self.mouseOverObject === undefined) {
-			if(self.isTouching(self.im.mouseLocation(), thisEntity)) {
-				self.mouseOverObject = thisEntity;
-				foundOne = true;
-			}
+		if(self.im.mouseDown() && self.isTouching(self.im.mouseLocation(), thisEntity) && self.mouseOverObject === undefined) {
+			self.entityList.splice(i, 1);
+			self.entityList.push(thisEntity);
+			self.mouseOverObject = thisEntity;
+			foundOne++;
 		}
 	}
-	if(!(self.mouseOverObject === undefined) || foundOne) {
+	
+	//have it do whatever its mouseOverEntity things are
+	console.log("Found One: " + foundOne);
+	if(!(self.mouseOverObject === undefined) || foundOne > 0) {
 		self.mouseOverObject.beActive(self);
 	}
+	
+	//if mouse is up, there is no entity
 	if(self.im.mouseUp()){
 		self.mouseOverObject = undefined;
 	}
+	
+	//draw all entities
+	for(var i = 0; i < self.entityList.length; i++) {
+		var thisEntity = self.entityList[i];
+		thisEntity.update();
+		thisEntity.draw();
+	}
+	
+	//request next frame, with callback to this function
 	window.requestAnimationFrame(this.drawAll.bind(this));
 }
     
 function Background(boarderSize, canvasWidth, canvasHeight, color1, color2, ctx) {
 	//alert("function Background(canvasWidth, canvasHeight, ctx)");
+	this.name = "Background";
 	this.ctx = ctx;
 	this.color1 = color1;
 	this.color2 = color2;
@@ -91,6 +105,7 @@ Background.prototype.draw = function() {
 
 function Button(theX, theY, radius, color1, color2, ctx) {
 	//alert("function Button(theX, theY, r, ctx)");
+	this.name = "Create Button";
 	this.ctx = ctx;
 	this.radius = radius;
 	this.x = theX;
@@ -119,18 +134,19 @@ Button.prototype.draw = function() {
 	this.ctx.beginPath();
 	this.ctx.strokeStyle = this.color2;
 	this.ctx.lineWidth = 2;
-	this.ctx.moveTo(this.x - this.radius/2, this.y);
-	this.ctx.lineTo(this.x + this.radius/2, this.y);
+	this.ctx.moveTo(this.x - this.radius/3, this.y);
+	this.ctx.lineTo(this.x + this.radius/3, this.y);
 	this.ctx.stroke();
 	this.ctx.closePath();
 	this.ctx.beginPath();
-	this.ctx.moveTo(this.x, this.y - this.radius/2);
-	this.ctx.lineTo(this.x, this.y + this.radius/2);
+	this.ctx.moveTo(this.x, this.y - this.radius/3);
+	this.ctx.lineTo(this.x, this.y + this.radius/3);
 	this.ctx.stroke();
 }
 
 function Participant(theX, theY, color, ctx1) {
 	//alert("function Participant(theX, theY, ctx1)");
+	this.name = "Participant Num " + Math.floor(Math.random() * 1000);
 	this.ctx = ctx1;
 	this.x = theX;
 	this.y = theY;
