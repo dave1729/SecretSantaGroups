@@ -19,7 +19,7 @@ function SecretSantaInterface() {
 	this.participantList = [];
 	this.groupList = [];
 	this.boarderSize = 10;
-	this.mouseOverObject = undefined;
+	this.mouseOverObject = null;
 	
 	//Create Background
 	this.background = new Background(this.boarderSize, this.canvas.width, this.canvas.height, this.color1, this.color2, this.ctx);
@@ -55,7 +55,6 @@ function SecretSantaInterface() {
 
 SecretSantaInterface.prototype.drawAll = function() {
 	var self = this;
-	var foundOne = 0;
 	this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 	
 	//draw background before anything
@@ -65,25 +64,23 @@ SecretSantaInterface.prototype.drawAll = function() {
 	for(var i = self.entityList.length-1; i >= 0; i--) {
 		var thisEntity = self.entityList[i];
 		//to become new mouseEntity mouse must be down, over the entity, and a previous entity must not have been chosen
-		if(self.im.mouseDown() && thisEntity.isTouchingMouse(self.im.mouseLocation()) && self.mouseOverObject === undefined) {
+		if(self.mouseOverObject === null && self.im.mouseDown() && thisEntity.isTouchingMouse(self.im.mouseLocation())) {
 			self.entityList.splice(i, 1);
 			self.entityList.push(thisEntity);
 			self.mouseOverObject = thisEntity;
-			foundOne++;
 			break;
 		}
 	}
 	
 	//have it do whatever its mouseOverEntity things are
-	console.log("Found One: " + foundOne);
-	if(!(self.mouseOverObject === undefined) || foundOne > 0) {
+	if(!(self.mouseOverObject === null)) {
 		self.mouseOverObject.beActive(self);
 	}
 	
 	//if mouse is up, there is no entity
-	if(self.im.mouseUp() && self.mouseOverObject !== undefined){
+	if(self.im.mouseUp() && self.mouseOverObject !== null){
 		self.mouseOverObject.stopBeingActive(self);
-		self.mouseOverObject = undefined;
+		self.mouseOverObject = null;
 	}
 	
 	//draw all entities, from bottom up, and let them self update if they need to
@@ -173,7 +170,8 @@ function Participant(theX, theY, ctx1) {
 	this.radius = 30;
 	var num = Math.round(Math.random()*255);
 	var num2 = Math.round(Math.random()*255);
-	this.color = "rgb(" + num + ",180," + num2 + ")";
+	this.origionalColor = "rgb(" + num + ",180," + num2 + ")";
+	this.color = this.origionalColor;
 	//this.name = yourName;
 	//this.groupNumber = yourGroupNumber;
 	//this.secretCode = yourSecretCode;
@@ -188,18 +186,27 @@ Participant.prototype.beActive = function(self) {
 
 Participant.prototype.stopBeingActive = function(ssInterface) {
 	var thisEntity = this;
+	var thisHasNoGroup = true;
 	for(var i = 0; i < ssInterface.groupList.length; i++) {
 		var thisGroup = ssInterface.groupList[i];
 		var distToCenter = Math.sqrt(Math.pow(thisGroup.x - this.x, 2) + Math.pow(thisGroup.y - this.y, 2));
 		if(thisGroup.outerRadius >= distToCenter) {
-			this.color = thisGroup.color;
+			thisEntity.color = thisGroup.color;
+			thisHasNoGroup = false;
 		}
+	}
+	if(thisHasNoGroup) {
+		thisEntity.restoreColor();
 	}
 }
 
 Participant.prototype.isTouchingMouse = function(point) {
 	var distToCenter = Math.sqrt(Math.pow(point.x - this.x, 2) + Math.pow(point.y - this.y, 2));
 	return (this.radius >= distToCenter);
+}
+
+Participant.prototype.restoreColor = function() {
+	this.color = this.origionalColor;
 }
 
 Participant.prototype.update = function() {
@@ -255,9 +262,12 @@ Group.prototype.stopBeingActive = function(ssInterface) {
 	this.activePart = "none";
 	for(var i = 0; i < ssInterface.participantList.length; i++) {
 		var thisEntity = ssInterface.participantList[i];
-		var distToCenter = Math.sqrt(Math.pow(thisEntity.x - this.x, 2) + Math.pow(thisEntity.y - this.y, 2));
-		if(this.outerRadius >= distToCenter) {
+		var distToCenter = Math.sqrt(Math.pow(thisEntity.x - thisGroup.x, 2) + Math.pow(thisEntity.y - thisGroup.y, 2));
+		if(thisGroup.outerRadius >= distToCenter) {
 			thisEntity.color = thisGroup.color;
+		}
+		else if(thisEntity.color === thisGroup.color) {
+			thisEntity.restoreColor();
 		}
 	}
 }
