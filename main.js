@@ -5,7 +5,6 @@ function SecretSantaInterface() {
 	this.color4 = "rgb(83,62,45)";//brown
 	this.color5 = "rgb(220,196,142)";//cream
 	
-	
 	this.count = 0;
 	//alert("function SecretSantaInterface()");
 	this.canvas = document.getElementById("InteractiveCanvas");
@@ -41,6 +40,8 @@ function SecretSantaInterface() {
 		ssInterface.mouseOverObject = new Group(ssInterface.im.mouseLocation().x, ssInterface.im.mouseLocation().y, ssInterface.ctx);
 		ssInterface.entityList.push(ssInterface.mouseOverObject);
 		ssInterface.groupList.push(ssInterface.mouseOverObject);
+		ssInterface.mouseOverObject.activePart = "innerRadius";
+		ssInterface.mouseOverObject.beActive(ssInterface);
     };
 	this.entityList.push(this.groupsButton);
 	
@@ -56,7 +57,8 @@ function SecretSantaInterface() {
 SecretSantaInterface.prototype.drawAll = function() {
 	var self = this;
 	this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-	
+	var j = 0;
+	console.log("J reset to 0.");
 	//draw background before anything
 	self.background.draw();
 	
@@ -68,6 +70,8 @@ SecretSantaInterface.prototype.drawAll = function() {
 			self.entityList.splice(i, 1);
 			self.entityList.push(thisEntity);
 			self.mouseOverObject = thisEntity;
+			j = i;
+			console.log(j);
 			break;
 		}
 	}
@@ -163,7 +167,8 @@ Button.prototype.draw = function() {
 
 function Participant(theX, theY, ctx1) {
 	//alert("function Participant(theX, theY, ctx1)");
-	this.name = "Participant Num " + Math.floor(Math.random() * 1000);
+	//this.name = prompt("Please enter first person's name.", "Participant Num " + Math.floor(Math.random() * 1000));
+	this.name = "Name";
 	this.ctx = ctx1;
 	this.x = theX;
 	this.y = theY;
@@ -223,13 +228,15 @@ Participant.prototype.draw = function() {
 	this.ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
 	this.ctx.fill();
 	this.ctx.stroke();
+	this.ctx.fillStyle = "rgb(35,35,35)";
+	this.ctx.font="10px Georgia";
+	this.ctx.fillText(this.name,this.x - this.radius, this.y + this.radius + 10);
 	this.ctx.closePath();
 }
 
-/////////////////////////////////////
 function Group(theX, theY, ctx1) {
-	//alert("function Participant(theX, theY, ctx1)");
-	this.name = "Group Num " + Math.floor(Math.random() * 100);
+	//this.name = prompt("Please enter group name.", "Group Num " + Math.floor(Math.random() * 100));
+	this.name = "Name";
 	this.ctx = ctx1;
 	this.x = theX;
 	this.y = theY;
@@ -307,6 +314,9 @@ Group.prototype.draw = function() {
 	this.ctx.lineWidth = this.lineWidth;
 	this.ctx.arc(this.x, this.y, this.outerRadius, 0, 2 * Math.PI, false);
 	this.ctx.stroke();
+	this.ctx.fillStyle = "rgb(35,35,35)";
+	this.ctx.font="10px Georgia";
+	this.ctx.fillText(this.name,this.x - this.innerRadius, this.y + this.innerRadius + 10);
 	this.ctx.closePath();
 }
 
