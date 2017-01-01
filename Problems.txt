@@ -1,3 +1,6 @@
+12/29/2016
+When holding the edge of a group; if the mouse leaves the canvas, the user stops holding the click, then
+reenters the canvas, the edge will still follow the users mouse. The user will then have to click again to release it.
 
-12/18/2016
-When you click on the create circle button, it creates dots weather there is a dot covering it or not.
+If you make a group, add some participants to it, then try to make a second group, your first attempt at clicking the
+new group button will result in your original group changing it's outer edge to your mouse location, at the new button.
