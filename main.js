@@ -61,9 +61,10 @@ SecretSantaInterface.prototype.drawAll = function() {
 	console.log("J reset to 0.");
 	//draw background before anything
 	self.background.draw();
-	
+	var broken = false;
 	//pick mouoseOverEntity, from top down
 	for(var i = self.entityList.length-1; i >= 0; i--) {
+		if(broken)console.log("How???????????");
 		var thisEntity = self.entityList[i];
 		//to become new mouseEntity mouse must be down, over the entity, and a previous entity must not have been chosen
 		if(self.mouseOverObject === null && self.im.mouseDown() && thisEntity.isTouchingMouse(self.im.mouseLocation())) {
@@ -72,10 +73,10 @@ SecretSantaInterface.prototype.drawAll = function() {
 			self.mouseOverObject = thisEntity;
 			j = i;
 			console.log(j);
+			broken = true;
 			break;
 		}
 	}
-	
 	//have it do whatever its mouseOverEntity things are
 	if(!(self.mouseOverObject === null)) {
 		self.mouseOverObject.beActive(self);
@@ -176,6 +177,7 @@ function Participant(theX, theY, ctx1) {
 	var num = Math.round(Math.random()*255);
 	var num2 = Math.round(Math.random()*255);
 	this.origionalColor = "rgb(" + num + ",180," + num2 + ")";
+	this.groupColor = null;
 	this.color = this.origionalColor;
 	//this.name = yourName;
 	//this.groupNumber = yourGroupNumber;
@@ -197,11 +199,12 @@ Participant.prototype.stopBeingActive = function(ssInterface) {
 		var distToCenter = Math.sqrt(Math.pow(thisGroup.x - this.x, 2) + Math.pow(thisGroup.y - this.y, 2));
 		if(thisGroup.outerRadius >= distToCenter) {
 			thisEntity.color = thisGroup.color;
+			thisEntity.groupColor = thisEntity.color;
 			thisHasNoGroup = false;
 		}
 	}
 	if(thisHasNoGroup) {
-		thisEntity.restoreColor();
+		thisEntity.color = thisEntity.origionalColor;
 	}
 }
 
@@ -211,7 +214,17 @@ Participant.prototype.isTouchingMouse = function(point) {
 }
 
 Participant.prototype.restoreColor = function() {
-	this.color = this.origionalColor;
+	if(this.groupColor !== null) {
+		this.color = this.groupColor;
+	}
+	else {
+		this.color = this.origionalColor;
+	}
+}
+
+Participant.prototype.changeColorTo = function(newColor) {
+		this.color = newColor;
+		this.groupColor = newColor;
 }
 
 Participant.prototype.update = function() {
@@ -252,8 +265,8 @@ function Group(theX, theY, ctx1) {
 	//this.secretSanta = yourSecretSanta;
 }
 
-Group.prototype.beActive = function(self) {
-	var mouseLoc = self.im.mouseLocation();
+Group.prototype.beActive = function(ssInterface) {
+	var mouseLoc = ssInterface.im.mouseLocation();
 	if(this.activePart === "innerRadius") {
 		this.x = mouseLoc.x;
 		this.y = mouseLoc.y;
@@ -261,6 +274,19 @@ Group.prototype.beActive = function(self) {
 	else if(this.activePart === "outerRadius"){
 		var distToCenter = Math.sqrt(Math.pow(mouseLoc.x - this.x, 2) + Math.pow(mouseLoc.y - this.y, 2));
 		this.outerRadius = distToCenter;
+	}
+	else if(this.activePart === "none") {
+		var point = ssInterface.im.mouseLocation();
+		var distToCenter = Math.sqrt(Math.pow(point.x - this.x, 2) + Math.pow(point.y - this.y, 2));
+		var delta = Math.abs(this.outerRadius - distToCenter);
+		//if we're already selecting the inner, Stay on inner. Otherwise we can check to see if we are close enough
+		if(this.activePart === "innerRadius" || (this.activePart === "none" && this.innerRadius >= distToCenter)) {
+			this.activePart = "innerRadius";
+		}
+		//if we're already selecting the outer, Stay on outer. Otherwise we can check to see if we are touching enough
+		else if(this.activePart === "outerRadius" || (this.activePart === "none" && delta <= this.lineWidth/2)) {
+			this.activePart = "outerRadius";
+		}
 	}
 }
 
@@ -271,10 +297,10 @@ Group.prototype.stopBeingActive = function(ssInterface) {
 		var thisEntity = ssInterface.participantList[i];
 		var distToCenter = Math.sqrt(Math.pow(thisEntity.x - thisGroup.x, 2) + Math.pow(thisEntity.y - thisGroup.y, 2));
 		if(thisGroup.outerRadius >= distToCenter) {
-			thisEntity.color = thisGroup.color;
+			thisEntity.changeColorTo(thisGroup.color);
 		}
 		else if(thisEntity.color === thisGroup.color) {
-			thisEntity.restoreColor();
+			thisEntity.stopBeingActive(ssInterface);
 		}
 	}
 }
@@ -284,13 +310,8 @@ Group.prototype.isTouchingMouse = function(point) {
 	var distToCenter = Math.sqrt(Math.pow(point.x - this.x, 2) + Math.pow(point.y - this.y, 2));
 	var delta = Math.abs(this.outerRadius - distToCenter);
 	//if we're already selecting the inner, Stay on inner. Otherwise we can check to see if we are close enough
-	if(this.activePart === "innerRadius" || (this.activePart === "none" && this.innerRadius >= distToCenter)) {
-		this.activePart = "innerRadius";
-		isTouching = true;
-	}
-	//if we're already selecting the outer, Stay on outer. Otherwise we can check to see if we are touching enough
-	else if(this.activePart === "outerRadius" || (this.activePart === "none" && delta <= this.lineWidth/2)) {
-		this.activePart = "outerRadius";
+	if(this.innerRadius >= distToCenter || delta <= this.lineWidth/2) {
+		//this.activePart = "innerRadius";
 		isTouching = true;
 	}
 	
