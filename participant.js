@@ -27,11 +27,11 @@ Participant.prototype.stopBeingActive = function(ssInterface) {
 	var thisEntity = this;
 	var thisHasNoGroup = true;
 	for(var i = 0; i < ssInterface.groupList.length; i++) {
-		var thisGroup = ssInterface.groupList[i];
-		var distToCenter = Math.sqrt(Math.pow(thisGroup.x - this.x, 2) + Math.pow(thisGroup.y - this.y, 2));
-		if(thisGroup.outerRadius >= distToCenter) {
-			thisEntity.color = thisGroup.color;
-			thisEntity.groupColor = thisEntity.color;
+		var currentGroup = ssInterface.groupList[i];
+		var thisEntityDistToCenter = Math.sqrt(Math.pow(currentGroup.x - this.x, 2) + Math.pow(currentGroup.y - this.y, 2));
+		if(currentGroup.outerRadius >= thisEntityDistToCenter) {
+			thisEntity.color = currentGroup.color;
+			thisEntity.groupColor = currentGroup.color;
 			thisHasNoGroup = false;
 		}
 	}

@@ -19,10 +19,12 @@ function Group(theX, theY, ctx1) {
 Group.prototype.beActive = function(ssInterface) {
 	var mouseLoc = ssInterface.im.mouseLocation();
 	if(this.activePart === "innerRadius") {
+		// update group location
 		this.x = mouseLoc.x;
 		this.y = mouseLoc.y;
 	}
 	else if(this.activePart === "outerRadius"){
+		// update group radius
 		var distToCenter = Math.sqrt(Math.pow(mouseLoc.x - this.x, 2) + Math.pow(mouseLoc.y - this.y, 2));
 		this.outerRadius = distToCenter;
 	}
@@ -30,13 +32,13 @@ Group.prototype.beActive = function(ssInterface) {
 		var point = ssInterface.im.mouseLocation();
 		var distToCenter = Math.sqrt(Math.pow(point.x - this.x, 2) + Math.pow(point.y - this.y, 2));
 		var delta = Math.abs(this.outerRadius - distToCenter);
-		//if we're already selecting the inner, Stay on inner. Otherwise we can check to see if we are close enough
-		if(this.activePart === "innerRadius" || (this.activePart === "none" && this.innerRadius >= distToCenter)) {
-			this.activePart = "innerRadius";
-		}
 		//if we're already selecting the outer, Stay on outer. Otherwise we can check to see if we are touching enough
-		else if(this.activePart === "outerRadius" || (this.activePart === "none" && delta <= this.lineWidth/2)) {
+		if(delta <= this.lineWidth/2) {
 			this.activePart = "outerRadius";
+		}
+		// check to see if we are close enough
+		else if(this.innerRadius >= distToCenter) {
+			this.activePart = "innerRadius";
 		}
 	}
 }

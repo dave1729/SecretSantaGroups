@@ -17,6 +17,7 @@ function SecretSantaInterface() {
 	this.entityList = [];
 	this.participantList = [];
 	this.groupList = [];
+	this.buttonList = [];
 	this.boarderSize = 10;
 	this.mouseOverObject = null;
 	
@@ -32,6 +33,7 @@ function SecretSantaInterface() {
 		ssInterface.participantList.push(ssInterface.mouseOverObject);
     };
 	this.entityList.push(this.createButton);
+	this.buttonList.push(this.createButton);
 	
 	//Create the Button that puts participants in groups (in top right of screen)
 	this.groupsButton = new Button("Create Groups Button", this.canvas.width - 60, 55, 30,
@@ -44,6 +46,7 @@ function SecretSantaInterface() {
 		ssInterface.mouseOverObject.beActive(ssInterface);
     };
 	this.entityList.push(this.groupsButton);
+	this.buttonList.push(this.groupsButton);
 	
 	//Create and Start the Input Manager
 	this.im = new InputManager("Creating Participants", this.ctx);
@@ -56,15 +59,14 @@ function SecretSantaInterface() {
 
 SecretSantaInterface.prototype.drawAll = function() {
 	var self = this;
-	this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+	// this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 	var j = 0;
 	console.log("J reset to 0.");
 	//draw background before anything
 	self.background.draw();
-	var broken = false;
+
 	//pick mouoseOverEntity, from top down
 	for(var i = self.entityList.length-1; i >= 0; i--) {
-		if(broken)console.log("How???????????");
 		var thisEntity = self.entityList[i];
 		//to become new mouseEntity mouse must be down, over the entity, and a previous entity must not have been chosen
 		if(self.mouseOverObject === null && self.im.mouseDown() && thisEntity.isTouchingMouse(self.im.mouseLocation())) {
