@@ -7,6 +7,7 @@ function Group(theX, theY, ctx1) {
 	this.activePart = "none";//determines weather the inner radius is affected, or outer radius
 	this.outerRadius = 100;
 	this.innerRadius = 15;
+	this.groupParticipantList = [];
 	var num = Math.round(Math.random()*200) + 25;
 	this.color = "rgb(" + num + ",0,0)";
 	this.lineWidth = 10;
@@ -46,14 +47,18 @@ Group.prototype.beActive = function(ssInterface) {
 Group.prototype.stopBeingActive = function(ssInterface) {
 	var thisGroup = this;
 	this.activePart = "none";
+	
+	// check for participants who need to be in this group now
 	for(var i = 0; i < ssInterface.participantList.length; i++) {
-		var thisEntity = ssInterface.participantList[i];
-		var distToCenter = Math.sqrt(Math.pow(thisEntity.x - thisGroup.x, 2) + Math.pow(thisEntity.y - thisGroup.y, 2));
+		var currentParticipant = ssInterface.participantList[i];
+		var distToCenter = Math.sqrt(Math.pow(currentParticipant.x - thisGroup.x, 2) + Math.pow(currentParticipant.y - thisGroup.y, 2));
 		if(thisGroup.outerRadius >= distToCenter) {
-			thisEntity.changeColorTo(thisGroup.color);
+			this.groupParticipantList.push(currentParticipant);
+			currentParticipant.changeToGroup(thisGroup);
 		}
-		else if(thisEntity.color === thisGroup.color) {
-			thisEntity.stopBeingActive(ssInterface);
+		else if(currentParticipant.group === thisGroup) {
+			currentParticipant.checkForNewGroup(ssInterface);
+			this.groupParticipantList.splice(i, 1);
 		}
 	}
 }

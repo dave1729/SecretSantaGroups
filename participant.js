@@ -9,7 +9,7 @@ function Participant(theX, theY, ctx1) {
 	var num = Math.round(Math.random()*255);
 	var num2 = Math.round(Math.random()*255);
 	this.origionalColor = "rgb(" + num + ",180," + num2 + ")";
-	this.groupColor = null;
+	this.group = null;
 	this.color = this.origionalColor;
 	//this.name = yourName;
 	//this.groupNumber = yourGroupNumber;
@@ -24,19 +24,26 @@ Participant.prototype.beActive = function(self) {
 }
 
 Participant.prototype.stopBeingActive = function(ssInterface) {
+	this.checkForNewGroup(ssInterface);
+}
+
+Participant.prototype.checkForNewGroup = function(ssInterface) {
 	var thisEntity = this;
 	var thisHasNoGroup = true;
-	for(var i = 0; i < ssInterface.groupList.length; i++) {
+	var groupListLength = ssInterface.groupList.length;
+	for(var i = groupListLength - 1; i >= 0; i--) {
 		var currentGroup = ssInterface.groupList[i];
 		var thisEntityDistToCenter = Math.sqrt(Math.pow(currentGroup.x - this.x, 2) + Math.pow(currentGroup.y - this.y, 2));
 		if(currentGroup.outerRadius >= thisEntityDistToCenter) {
 			thisEntity.color = currentGroup.color;
-			thisEntity.groupColor = currentGroup.color;
+			thisEntity.group = currentGroup;
 			thisHasNoGroup = false;
+			break;
 		}
 	}
 	if(thisHasNoGroup) {
 		thisEntity.color = thisEntity.origionalColor;
+		thisEntity.group = null;
 	}
 }
 
@@ -46,17 +53,17 @@ Participant.prototype.isTouchingMouse = function(point) {
 }
 
 Participant.prototype.restoreColor = function() {
-	if(this.groupColor !== null) {
-		this.color = this.groupColor;
+	if(this.group !== null) {
+		this.color = this.group.color;
 	}
 	else {
 		this.color = this.origionalColor;
 	}
 }
 
-Participant.prototype.changeColorTo = function(newColor) {
-		this.color = newColor;
-		this.groupColor = newColor;
+Participant.prototype.changeToGroup = function(group) {
+		this.color = group.color;
+		this.group = group;
 }
 
 Participant.prototype.update = function() {
