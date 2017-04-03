@@ -57,8 +57,8 @@ Group.prototype.stopBeingActive = function(ssInterface) {
 			currentParticipant.changeToGroup(thisGroup);
 		}
 		else if(currentParticipant.group === thisGroup) {
-			currentParticipant.checkForNewGroup(ssInterface);
 			this.groupParticipantList.splice(i, 1);
+			currentParticipant.checkForNewGroup(ssInterface);
 		}
 	}
 }
@@ -74,6 +74,18 @@ Group.prototype.isTouchingMouse = function(point) {
 	}
 	
 	return isTouching;
+}
+
+Group.prototype.removeParticipant = function(participant) {
+	var self = this;
+	var groupParticipantListLength = self.groupParticipantList.length;
+	for(var i = 0; i < groupParticipantListLength; i++) {
+		var thisEntity = self.groupParticipantList[i];
+			if(thisEntity === participant) {
+				self.groupParticipantList.splice(i, 1);
+				break;
+			}
+	}
 }
 
 Group.prototype.update = function() {
