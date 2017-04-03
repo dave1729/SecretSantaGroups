@@ -37,11 +37,15 @@ Participant.prototype.checkForNewGroup = function(ssInterface) {
 		if(currentGroup.outerRadius >= thisEntityDistToCenter) {
 			thisEntity.color = currentGroup.color;
 			thisEntity.group = currentGroup;
+			currentGroup.groupParticipantList.push(thisEntity);
 			thisHasNoGroup = false;
 			break;
 		}
 	}
 	if(thisHasNoGroup) {
+		if(this.group !== null) {
+			this.group.removeParticipant(thisEntity);
+		}
 		thisEntity.color = thisEntity.origionalColor;
 		thisEntity.group = null;
 	}

@@ -48,6 +48,19 @@ function SecretSantaInterface() {
 	this.entityList.push(this.groupsButton);
 	this.buttonList.push(this.groupsButton);
 	
+	//Create the Button that creates new participants (in bottom right of screen)
+	this.sortButton = new Button("Create Sort Button", 60, 55, 30,
+									this.color4, this.color5, this.ctx);
+	this.sortButton.beActive = function (ssInterface) {
+		console.log('sort button pressed');
+		ssInterface.sortParticipants(ssInterface);
+		console.log('participants sorted');
+		ssInterface.mouseOverObject = null;
+		console.log('no mouseoverobject');
+    };
+	this.entityList.push(this.sortButton);
+	this.buttonList.push(this.sortButton);
+	
 	//Create and Start the Input Manager
 	this.im = new InputManager("Creating Participants", this.ctx);
 	this.im.addMouse();
@@ -96,6 +109,25 @@ SecretSantaInterface.prototype.drawAll = function() {
 	
 	//request next frame, with callback to this function
 	window.requestAnimationFrame(this.drawAll.bind(this));
+}
+
+SecretSantaInterface.prototype.sortParticipants = function(ssInterface) {
+	var groupList = ssInterface.groupList;
+	console.log("\nssInterface.groupList.length: " + groupList.length);
+	if(ssInterface.groupList !== null && groupList.length > 0){
+		ssInterface.groupList.sort(
+		          function(group1, group2){
+		             return group1.groupParticipantList.length - group2.groupParticipantList.length;
+		          }
+		);
+		for(var i = 0; i < groupList.length; i++) {
+			var group = groupList[i];
+			console.log(i + ") " + group.groupParticipantList.length);
+		}
+	}
+	if(ssInterface.participantList != null && ssInterface.participantList.length > 0) {
+		console.log("all participants count: " + ssInterface.participantList.length);
+	}
 }
 
 var ssInterface = new SecretSantaInterface();
