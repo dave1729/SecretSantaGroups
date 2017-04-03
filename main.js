@@ -59,9 +59,7 @@ function SecretSantaInterface() {
 
 SecretSantaInterface.prototype.drawAll = function() {
 	var self = this;
-	// this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-	var j = 0;
-	console.log("J reset to 0.");
+
 	//draw background before anything
 	self.background.draw();
 
@@ -73,12 +71,11 @@ SecretSantaInterface.prototype.drawAll = function() {
 			self.entityList.splice(i, 1);
 			self.entityList.push(thisEntity);
 			self.mouseOverObject = thisEntity;
-			j = i;
-			console.log(j);
 			broken = true;
 			break;
 		}
 	}
+	
 	//have it do whatever its mouseOverEntity things are
 	if(!(self.mouseOverObject === null)) {
 		self.mouseOverObject.beActive(self);
@@ -90,7 +87,7 @@ SecretSantaInterface.prototype.drawAll = function() {
 		self.mouseOverObject = null;
 	}
 	
-	//draw all entities, from bottom up, and let them self update if they need to
+	//draw all entities, from bottom up, and let them update if they need to
 	for(var i = 0; i < self.entityList.length; i++) {
 		var thisEntity = self.entityList[i];
 		thisEntity.update();
