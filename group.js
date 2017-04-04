@@ -1,6 +1,7 @@
 function Group(theX, theY, ctx1) {
 	//this.name = prompt("Please enter group name.", "Group Num " + Math.floor(Math.random() * 100));
-	this.name = "Name";
+	this.name = "Group" + Math.floor(Math.random() * 100);
+	console.log("New Group: " + this.name);
 	this.ctx = ctx1;
 	this.x = theX;
 	this.y = theY;

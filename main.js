@@ -114,20 +114,91 @@ SecretSantaInterface.prototype.drawAll = function() {
 SecretSantaInterface.prototype.sortParticipants = function(ssInterface) {
 	var groupList = ssInterface.groupList;
 	console.log("\nssInterface.groupList.length: " + groupList.length);
+	
+	var participantCount = ssInterface.participantList.length;
+	
 	if(ssInterface.groupList !== null && groupList.length > 0){
+		// sort by largest to smallest
+		console.log("Sorting Groups");
 		ssInterface.groupList.sort(
 		          function(group1, group2){
-		             return group1.groupParticipantList.length - group2.groupParticipantList.length;
+		             return group2.groupParticipantList.length - group1.groupParticipantList.length;
 		          }
 		);
-		for(var i = 0; i < groupList.length; i++) {
-			var group = groupList[i];
-			console.log(i + ") " + group.groupParticipantList.length);
+		
+		// make bucket list
+		var participantBucketCount = groupList.length;
+		var bucketList = [];
+		var largestGroup = groupList[0];
+		console.log("Largest Group: " + largestGroup.name);
+		var numberOfBuckets = largestGroup.groupParticipantList.length;
+		
+		for(var i = 0; i < numberOfBuckets; i++) {
+			bucketList.push(new Bucket(i));
 		}
+		
+		shuffle(largestGroup.groupParticipantList);
+		
+		for(var i = 0; i < numberOfBuckets; i++) {
+			bucketList[i].addParticipant(largestGroup.groupParticipantList[i]);
+		}
+		
+		console.log("length before group removal: " + this.participantList.length);
+		for(var i = 0; i < this.participantList.length; i++) {
+			var currentParticipant = this.participantList[i];
+			if(currentParticipant.group === largestGroup) {
+				this.participantList.splice(i, 1);
+				i--;
+			}
+		}
+		console.log("length after group removal: " + this.participantList.length);
+		
+		var iterationCount = 0;
+		var everyoneIsAssigned = false;
+		while(this.participantList.length > 0 && iterationCount < 100) {
+			iterationCount++;
+			
+			var numberofParticipants = this.participantList.length;
+			console.log("participant count: " + numberofParticipants);
+			
+			var currentParticipantIdx = Math.floor(Math.random() * numberofParticipants);
+			console.log("participant index: " + currentParticipantIdx);
+			
+			var currentParticipant = this.participantList[currentParticipantIdx];
+			console.log("bucket count: " + numberOfBuckets);
+			
+			var currentBucketIdx = Math.floor(Math.random() * numberOfBuckets);
+			console.log("bucket index: " + currentBucketIdx);
+			
+			var currentBucket = bucketList[currentBucketIdx];
+			if(currentBucket.addParticipant(currentParticipant)) {
+				this.participantList.splice(currentParticipantIdx, 1);
+			}
+			else if (currentParticipant.group === largestGroup) {
+				this.participantList.splice(currentParticipantIdx, 1);
+			}
+			if(iterationCount % 100 === 0) console.log("Iterations: " + iterationCount);
+		}
+		console.log("Iterations: " + iterationCount);
 	}
-	if(ssInterface.participantList != null && ssInterface.participantList.length > 0) {
+	
+	if(ssInterface.participantList !== null && ssInterface.participantList.length > 0) {
 		console.log("all participants count: " + ssInterface.participantList.length);
 	}
+}
+
+function shuffle(list) {
+	// random index, scanning value, i
+    var randIdx, scanValue, i;
+    for (i = list.length-1; i > 0 ; i--) {
+    	// find some random index
+        randIdx = Math.floor(Math.random() * i);
+        //grab current values, scanning from the end
+        scanValue = list[i];
+        // switch the random value with the current value
+        list[i] = list[randIdx];
+        list[randIdx] = scanValue;
+    }
 }
 
 var ssInterface = new SecretSantaInterface();
