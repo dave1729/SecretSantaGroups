@@ -52,11 +52,15 @@ function SecretSantaInterface() {
 	this.sortButton = new Button("Create Sort Button", 60, 55, 30,
 									this.color4, this.color5, this.ctx);
 	this.sortButton.beActive = function (ssInterface) {
-		console.log('sort button pressed');
-		ssInterface.sortParticipants(ssInterface);
-		console.log('participants sorted');
-		ssInterface.mouseOverObject = null;
-		console.log('no mouseoverobject');
+		
+		if(Date.now() - this.lastPressTime > 2000) {
+			console.log('sort button pressed');
+			ssInterface.sortParticipants(ssInterface);
+			console.log('participants sorted');
+			ssInterface.mouseOverObject = null;
+			console.log('no mouseoverobject');
+			this.lastPressTime = Date.now();
+		}
     };
 	this.entityList.push(this.sortButton);
 	this.buttonList.push(this.sortButton);
@@ -143,7 +147,7 @@ SecretSantaInterface.prototype.sortParticipants = function(ssInterface) {
 			bucketList[i].addParticipant(largestGroup.groupParticipantList[i]);
 		}
 		
-		console.log("length before group removal: " + this.participantList.length);
+		console.log("Participants Length: " + this.participantList.length);
 		for(var i = 0; i < this.participantList.length; i++) {
 			var currentParticipant = this.participantList[i];
 			if(currentParticipant.group === largestGroup) {
@@ -151,32 +155,33 @@ SecretSantaInterface.prototype.sortParticipants = function(ssInterface) {
 				i--;
 			}
 		}
-		console.log("length after group removal: " + this.participantList.length);
+		console.log("Participants Length: " + this.participantList.length);
 		
 		var iterationCount = 0;
 		var everyoneIsAssigned = false;
 		while(this.participantList.length > 0 && iterationCount < 100) {
+			
 			iterationCount++;
 			
 			var numberofParticipants = this.participantList.length;
-			console.log("participant count: " + numberofParticipants);
-			
 			var currentParticipantIdx = Math.floor(Math.random() * numberofParticipants);
-			console.log("participant index: " + currentParticipantIdx);
-			
 			var currentParticipant = this.participantList[currentParticipantIdx];
-			console.log("bucket count: " + numberOfBuckets);
-			
 			var currentBucketIdx = Math.floor(Math.random() * numberOfBuckets);
-			console.log("bucket index: " + currentBucketIdx);
-			
 			var currentBucket = bucketList[currentBucketIdx];
+			
+			var groupName = "[no group]";
+			if(currentParticipant.group !== null && currentParticipant.group.name !== null) groupName = currentParticipant.group.name;
+			
+			console.log("Trying to put " + currentParticipant.name + " of group " + groupName + " in bucket " + currentBucket.number + ".");
+			
 			if(currentBucket.addParticipant(currentParticipant)) {
 				this.participantList.splice(currentParticipantIdx, 1);
 			}
 			else if (currentParticipant.group === largestGroup) {
 				this.participantList.splice(currentParticipantIdx, 1);
 			}
+			
+			console.log("Participants Length: " + this.participantList.length);
 			if(iterationCount % 100 === 0) console.log("Iterations: " + iterationCount);
 		}
 		console.log("Iterations: " + iterationCount);
@@ -184,6 +189,30 @@ SecretSantaInterface.prototype.sortParticipants = function(ssInterface) {
 	
 	if(ssInterface.participantList !== null && ssInterface.participantList.length > 0) {
 		console.log("all participants count: " + ssInterface.participantList.length);
+	}
+	
+	console.log("PRINTING PARTICIPANTS");
+	
+	var secretSantaList = [];
+	
+	for(var i = 0; i < bucketList.length; i++) {
+		var bucket = bucketList[i];
+		console.log("Bucket: " + bucket.number);
+	     for(var j = 0; j < bucket.participantsInBucket.length; j++) {
+	    	 var participant = bucket.participantsInBucket[j];
+	    	 participant.origionalColor = participant.color;
+	    	 secretSantaList.push(participant);
+	    	 console.log("    Participant: ");
+	    	 console.log("        " + participant.name + " buys for...");
+	     }
+	}
+	
+	console.log("Largest group Type: " + typeof(largestGroup));
+	
+	for(var i = 0; i < secretSantaList.length; i++) {
+		var participant = secretSantaList[i];
+		participant.x = (i + 1) * 60;
+		participant.y = 400;
 	}
 }
 

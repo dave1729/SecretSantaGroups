@@ -1,7 +1,7 @@
 function Participant(theX, theY, ctx1) {
 	//alert("function Participant(theX, theY, ctx1)");
 	//this.name = prompt("Please enter first person's name.", "Participant Num " + Math.floor(Math.random() * 1000));
-	this.name = "Name";
+	this.name = "Name-" + Math.floor(Math.random() * 1000);
 	console.log("New Participant");
 	this.ctx = ctx1;
 	this.x = theX;
