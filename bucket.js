@@ -6,16 +6,16 @@ function Bucket(number) {
 
 Bucket.prototype.addParticipant = function(participant) {
 	if(participant.group === null) {
-		console.log("Just throw this one in.");
+		console.log("Participant has no group, added to bucket.");
 		this.participantsInBucket.push(participant);
 		return true;
 	}
 	else if(this.groupsInBucket[participant.group.name] === true) {
-		console.log(participant.group.name + " is already Here. See, " + this.groupsInBucket[participant.group.name]);
+		console.log("There is already a participant from " + participant.group.name + " in this bucket, NOT added to bucket.");
 		return false;
 	}
 	else {
-		console.log("Well... this is new.");
+		console.log("Participant in group " + participant.group.name + ", added to bucket.");
 		this.groupsInBucket[participant.group.name] = true;
 		this.participantsInBucket.push(participant);
 		return true;

@@ -7,6 +7,7 @@ function Button(theName, theX, theY, radius, color1, color2, ctx) {
 	this.y = theY;
 	this.color1 = color1;
 	this.color2 = color2;
+	this.lastPressTime = Date.now();
 }
 
 Button.prototype.stopBeingActive = function(ssInterface) {
