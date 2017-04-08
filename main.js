@@ -159,6 +159,9 @@ SecretSantaInterface.prototype.sortParticipants = function(ssInterface) {
 		
 		var iterationCount = 0;
 		var everyoneIsAssigned = false;
+		
+		shuffle(this.participantList);
+		
 		while(this.participantList.length > 0 && iterationCount < 100) {
 			
 			iterationCount++;
@@ -209,11 +212,7 @@ SecretSantaInterface.prototype.sortParticipants = function(ssInterface) {
 	
 	console.log("Largest group Type: " + typeof(largestGroup));
 	
-	for(var i = 0; i < secretSantaList.length; i++) {
-		var participant = secretSantaList[i];
-		participant.x = (i + 1) * 60;
-		participant.y = 400;
-	}
+	setFinalCircleLocations(secretSantaList);
 }
 
 function shuffle(list) {
@@ -228,6 +227,27 @@ function shuffle(list) {
         list[i] = list[randIdx];
         list[randIdx] = scanValue;
     }
+}
+
+function setFinalCircleLocations(list) {
+	if (list === null || list.length < 1) {
+		return false;
+	}
+	
+	var bigArcLength = list[0].radius * 2.0;
+	var bigCircumference = list.length * bigArcLength;
+	var bigRadius = bigCircumference / (Math.PI * 2.0);
+	var deltaTheta = (bigArcLength / bigCircumference) * 2.0 * Math.PI;
+	var theta = 0;
+	
+    for (var i = 0; i < list.length; i++) {
+    	var participant = list[i];
+    	participant.xFinal = Math.cos(theta) * bigRadius + bigRadius + bigArcLength;
+    	participant.yFinal = Math.sin(theta) * bigRadius + bigRadius + bigArcLength;
+    	theta += deltaTheta;
+    }
+    
+    return true;
 }
 
 var ssInterface = new SecretSantaInterface();
