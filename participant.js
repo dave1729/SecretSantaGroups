@@ -6,6 +6,8 @@ function Participant(theX, theY, ctx1) {
 	this.ctx = ctx1;
 	this.x = theX;
 	this.y = theY;
+	this.xFinal = undefined;
+	this.yFinal = undefined;
 	this.radius = 30;
 	var num = Math.round(Math.random()*255);
 	var num2 = Math.round(Math.random()*255);
@@ -72,7 +74,35 @@ Participant.prototype.changeToGroup = function(group) {
 }
 
 Participant.prototype.update = function() {
-
+	if (this.xFinal !== undefined && this.yFinal !== undefined) {
+		var xDist = Math.abs(this.xFinal - this.x);
+		var yDist = Math.abs(this.yFinal - this.y);
+		
+		var xDirection = -1;
+		var yDirection = -1;
+		
+		if (this.xFinal - this.x > 0) xDirection = 1;
+		if (this.yFinal - this.y > 0) yDirection = 1;
+		
+		if (Math.abs(this.xFinal - this.x) > 1) {
+			this.x += xDirection * xDist * 0.005;
+			console.log("X: " + this.x);
+		}
+		else {
+			this.x = this.xFinal;
+		}
+		if (Math.abs(this.yFinal - this.y) > 1) {
+			this.y += yDirection * yDist * 0.005;
+		}
+		else {
+			this.y = this.yFinal;
+		}
+		
+		if (this.xFinal === this.x && this.yFinal === this.y) {
+			this.xFinal = undefined;
+			this.yFinal = undefined;
+		}
+	}
 }
 
 Participant.prototype.draw = function() {
