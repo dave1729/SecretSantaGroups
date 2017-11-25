@@ -129,7 +129,7 @@ SecretSantaInterface.prototype.sortParticipants = function(ssInterface) {
 		             return group2.groupParticipantList.length - group1.groupParticipantList.length;
 		          }
 		);
-		
+
 		// make bucket list
 		var participantBucketCount = groupList.length;
 		var bucketList = [];
@@ -188,6 +188,17 @@ SecretSantaInterface.prototype.sortParticipants = function(ssInterface) {
 			if(iterationCount % 100 === 0) console.log("Iterations: " + iterationCount);
 		}
 		console.log("Iterations: " + iterationCount);
+	}
+	else {
+        console.log("Before New Stuff");
+        if(groupList.length < 1) {
+            shuffle(this.participantList);
+            setFinalCircleLocations(this.participantList);
+
+            console.log("during New Stuff");
+            return;
+        }
+        console.log("After New Stuff");
 	}
 	
 	if(ssInterface.participantList !== null && ssInterface.participantList.length > 0) {
